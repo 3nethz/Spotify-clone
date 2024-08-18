@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { assets } from "../assets/assets";
 import axios from "axios";
 import { url } from "../App";
@@ -17,39 +17,53 @@ const AddSong = () => {
     e.preventDefault();
     setLoading(true);
 
-    try{
+    try {
       const formData = new FormData();
-      formData.append('name', name);
-      formData.append('desc', desc);
-      formData.append('image', image);
-      formData.append('audio', song);
-      formData.append('album', album);
+      formData.append("name", name);
+      formData.append("desc", desc);
+      formData.append("image", image);
+      formData.append("audio", song);
+      formData.append("album", album);
 
       const response = await axios.post(`${url}/api/song/add`, formData);
 
-      if (response.data.success){
-        toast.success('Song added successfully');
+      if (response.data.success) {
+        toast.success("Song added successfully");
         setName("");
         setDesc("");
         setAlbum("none");
         setImage(false);
         setSong(false);
       } else {
-        toast.error('Failed to add song'); 
+        toast.error("Failed to add song");
       }
-
     } catch (e) {
-      toast.error("Failed to add song");  
+      toast.error("Failed to add song");
       console.log(e);
     }
     setLoading(false);
   };
 
+  const loadAlbumData = async () => {
+    try {
+      const response = await axios.get(`${url}/api/album/list`);
+      if (response.data.success) {
+        setAlbumData(response.data.albums);
+      } else {
+        toast.error("Failed to fetch album data");
+      }
+    } catch (e) {
+      toast.error(e.message);
+    }
+  };
+
+  useEffect(() => {
+    loadAlbumData();
+  }, []);
+
   return loading ? (
     <div className="grid place-items-center min-h-[80vh]">
-      <div className="w-16 h-16 place-self-center border-4 border-gray-400 border-t-green-800 rounded-full animate-spin">
-
-      </div>
+      <div className="w-16 h-16 place-self-center border-4 border-gray-400 border-t-green-800 rounded-full animate-spin"></div>
     </div>
   ) : (
     <form
@@ -122,6 +136,11 @@ const AddSong = () => {
           className="bg-transparent outline-green-600 border-2 border-gray-400 p-2.5 w-[150px]"
         >
           <option value="none"> None </option>
+          {albumData.map((item, index) => (
+            <option key={index} value={item.name}>
+              {item.name}
+            </option>
+          ))}
         </select>
       </div>
       <button

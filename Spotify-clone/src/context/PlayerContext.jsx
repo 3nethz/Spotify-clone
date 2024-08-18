@@ -1,5 +1,6 @@
 import { createContext, useEffect, useRef, useState } from "react";
-import { songsData } from "../assets/assets";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 export const PlayerContext = createContext();
 
@@ -8,6 +9,10 @@ const PlayerContextProvider = (props) => {
   const seekBgRef = useRef();
   const seekBarRef = useRef();
 
+  const url = "http://localhost:4000";
+
+  const [songsData, setSongsData] = useState([]);
+  const [albumsData, setAlbumsData] = useState([]);
   const [track, setTrack] = useState(songsData[0]);
   const [playStatus, setPlayStatus] = useState(false);
   const [time, setTime] = useState({
@@ -31,32 +36,59 @@ const PlayerContextProvider = (props) => {
     setPlayStatus(false);
   };
   const playWithId = async (id) => {
-    await setTrack(songsData[id]);
+    await songsData.map((item) => {
+      if (id === item._id) {
+        setTrack(item);
+      }
+    });
     await audioRef.current.play();
     setPlayStatus(true);
   };
 
   const previous = async () => {
-    if (track.id > 0) {
-      await setTrack(songsData[track.id - 1]);
-      await audioRef.current.play();
-      setPlayStatus(true);
-    }
+    songsData.map(async (item, index) => {
+      if (track.id === item._id && index > 0) {
+        await setTrack(songsData[index - 1]);
+        await audioRef.current.play();
+        setPlayStatus(true);
+      }
+    });
   };
 
   const next = async () => {
-    if (track.id < songsData.length - 1) {
-      await setTrack(songsData[track.id + 1]);
-      await audioRef.current.play();
-      setPlayStatus(true);
-    }
+    songsData.map(async (item, index) => {
+      if (track.id === item._id && index < songsData.length - 1) {
+        await setTrack(songsData[index + 1]);
+        await audioRef.current.play();
+        setPlayStatus(true);
+      }
+    });
   };
 
   const seekSong = async (e) => {
     console.log(e);
     audioRef.current.currentTime =
-      ((e.nativeEvent.offsetX / seekBgRef.current.offsetWidth) *
-        audioRef.current.duration);
+      (e.nativeEvent.offsetX / seekBgRef.current.offsetWidth) *
+      audioRef.current.duration;
+  };
+
+  const getSongsData = async () => {
+    try {
+      const response = await axios.get(`${url}/api/song/list`);
+      setSongsData(response.data.songs);
+      setTrack(response.data.songs[0]);
+    } catch (e) {
+      toast.error(e.message);
+    }
+  };
+
+  const getAlbumsData = async () => {
+    try {
+      const response = await axios.get(`${url}/api/album/list`);
+      setAlbumsData(response.data.albums);
+    } catch (e) {
+      toast.error(e.message);
+    }
   };
 
   useEffect(() => {
@@ -79,6 +111,11 @@ const PlayerContextProvider = (props) => {
     };
   }, [audioRef]);
 
+  useEffect(() => {
+    getSongsData();
+    getAlbumsData();
+  }, []);
+
   const contextValue = {
     audioRef,
     seekBarRef,
@@ -95,6 +132,8 @@ const PlayerContextProvider = (props) => {
     previous,
     next,
     seekSong,
+    songsData,
+    albumsData,
   };
 
   return (
