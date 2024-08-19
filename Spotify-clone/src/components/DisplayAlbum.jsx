@@ -37,9 +37,6 @@ const DisplayAlbum = ({album}) => {
               alt=""
             />
             <b> Spotify </b>
-            likes
-            <b> 50 Songs</b>
-            about 3 hours
           </p>
         </div>
       </div>
