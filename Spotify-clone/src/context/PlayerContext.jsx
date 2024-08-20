@@ -1,6 +1,7 @@
 import { createContext, useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import 
 
 export const PlayerContext = createContext();
 
@@ -9,7 +10,7 @@ const PlayerContextProvider = (props) => {
   const seekBgRef = useRef();
   const seekBarRef = useRef();
 
-  const url = "http://localhost:4000";
+  const url =  import.meta.env.VITE_BACKEND_URL;
 
   const [songsData, setSongsData] = useState([]);
   const [albumsData, setAlbumsData] = useState([]);
